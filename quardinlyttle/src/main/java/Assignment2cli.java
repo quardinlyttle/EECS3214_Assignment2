@@ -18,7 +18,7 @@ public class Assignment2cli {
     	//Error handling and validation of args
     	if(args.length!= 3) {
     		System.out.println("Please provide the IP address, port number, and filename!");
-    		System.exit(0);
+    		System.exit(1);
     	}
     	
     	//Check IP
@@ -27,6 +27,7 @@ public class Assignment2cli {
     	}
     	catch(Exception e) {
     		  System.err.println("Error: Invalid IP address provided.");
+    		  System.exit(1);
     	}
     	//Check Port number
     	 
@@ -39,8 +40,10 @@ public class Assignment2cli {
     		socket = new DatagramSocket();
     	}
     	catch (Exception e) {
-    		System.err.println("Port number not valid!");
+    		System.err.println("Error: Invalid port number. Must be between 1024–65535.");
+    		System.exit(1);
     		}
+		
     	//Check File
     	file = new File(args[2]);
     	if (!file.exists() || !file.isFile() || !file.canRead()) {
@@ -49,13 +52,21 @@ public class Assignment2cli {
     	}
     	
     	
-    	// https://www.baeldung.com/udp-in-java
+    	/* The following sources have been used:
+    	 * https://www.baeldung.com/udp-in-java
+    	 * https://docs.oracle.com/javase/8/docs/api/java/io/BufferedInputStream.html
+    	 * https://docs.oracle.com/javase/8/docs/api/java/net/DatagramSocket.html
+    	 */
     	//Read file and send over packets
     	try{
     		//Send Filename first
     		byte[] filenameBytes = args[2].getBytes();
     		DatagramPacket filenamePacket = new DatagramPacket(filenameBytes,filenameBytes.length,ipaddress,portNum);
 			socket.send(filenamePacket);
+			
+			System.out.println("Sending file: " + args[2]);
+			System.out.println("Sending to " + ipaddress.getHostAddress() + ":" + portNum);
+
 
     		InputStream in = new BufferedInputStream(new FileInputStream(file));
     		buffer = new byte[bufferSize];
@@ -69,6 +80,7 @@ public class Assignment2cli {
     		socket.send(finalPacket);
     		socket.close();
     		in.close();
+    		System.out.println("File sent. EOF sent. Closing socket.");
     		
     	}
     	catch(Exception e){
